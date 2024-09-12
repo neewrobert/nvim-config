@@ -24,6 +24,10 @@ keymap.set("n", "<leader>to", ":tabnew<CR>") -- open a new tab
 keymap.set("n", "<leader>tx", ":tabclose<CR>") -- close a tab
 keymap.set("n", "<leader>tn", ":tabn<CR>") -- next tab
 keymap.set("n", "<leader>tp", ":tabp<CR>") -- previous tab
+keymap.set("n", "<leader>h", "<C-w>h", { noremap = true, silent = true })
+keymap.set("n", "<leader>j", "<C-w>j", { noremap = true, silent = true })
+keymap.set("n", "<leader>k", "<C-w>k", { noremap = true, silent = true })
+keymap.set("n", "<leader>l", "<C-w>l", { noremap = true, silent = true })
 
 -- Diff keymaps
 keymap.set("n", "<leader>cc", ":diffput<CR>") -- put diff from current to other during diff
@@ -95,7 +99,7 @@ keymap.set('n', '<leader>gn', '<cmd>lua vim.diagnostic.goto_next()<CR>')
 keymap.set('n', '<leader>tr', '<cmd>lua vim.lsp.buf.document_symbol()<CR>')
 keymap.set('i', '<C-Space>', '<cmd>lua vim.lsp.buf.completion()<CR>')
 
--- Filetype-specific keymaps (these can be done in the ftplugin directory instead if you prefer)
+-- Filetype-specific keymaps 
 keymap.set("n", '<leader>go', function()
   if vim.bo.filetype == 'java' then
     require('jdtls').organize_imports();
@@ -120,6 +124,12 @@ keymap.set("n", '<leader>tm', function()
   end
 end)
 
+keymap.set("n", '<leader>gs', function ()
+  if vim.bo.filetype == 'java' then
+    require("jdtls").code_action(false, 'refactor.generate.getters_setters');
+  end
+end)
+
 -- Debugging
 keymap.set("n", "<leader>bb", "<cmd>lua require'dap'.toggle_breakpoint()<cr>")
 keymap.set("n", "<leader>bc", "<cmd>lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<cr>")
@@ -140,3 +150,11 @@ keymap.set("n", '<leader>df', '<cmd>Telescope dap frames<cr>')
 keymap.set("n", '<leader>dh', '<cmd>Telescope dap commands<cr>')
 keymap.set("n", '<leader>de', function() require('telescope.builtin').diagnostics({default_text=":E:"}) end)
 
+
+keymap.set('n', '<leader>r', ':RunCode<CR>', { noremap = true, silent = false })
+keymap.set('n', '<leader>rf', ':RunFile<CR>', { noremap = true, silent = false })
+keymap.set('n', '<leader>rft', ':RunFile tab<CR>', { noremap = true, silent = false })
+keymap.set('n', '<leader>rp', ':RunProject<CR>', { noremap = true, silent = false })
+keymap.set('n', '<leader>rc', ':RunClose<CR>', { noremap = true, silent = false })
+keymap.set('n', '<leader>crf', ':CRFiletype<CR>', { noremap = true, silent = false })
+keymap.set('n', '<leader>crp', ':CRProjects<CR>', { noremap = true, silent = false })
