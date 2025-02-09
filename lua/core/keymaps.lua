@@ -165,3 +165,6 @@ vim.keymap.set('n', '<leader>k', ':TSTextobjectGotoPreviousStart @tag.outer<CR>'
 
 -- Format with Prettier
 vim.keymap.set('n', '<leader>f', ':Prettier<CR>', { noremap = true, silent = true })
+
+--Auto save
+vim.api.nvim_set_keymap("n", "<leader>ws", ":ASToggle<CR>", { noremap = true, silent = true })
