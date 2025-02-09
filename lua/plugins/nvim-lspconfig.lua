@@ -17,13 +17,13 @@ return {
 
     -- Useful status updates for LSP
     -- https://github.com/j-hui/fidget.nvim
-    { 'j-hui/fidget.nvim', opts = {} },
+    { 'j-hui/fidget.nvim',                        opts = {} },
 
     -- Additional lua configuration, makes nvim stuff amazing!
     -- https://github.com/folke/neodev.nvim
-    { 'folke/neodev.nvim', opts = {} },
+    { 'folke/neodev.nvim',                        opts = {} },
   },
-  config = function ()
+  config = function()
     require('mason').setup()
     require('mason-lspconfig').setup({
       -- Install these LSPs automatically
@@ -40,6 +40,8 @@ return {
         'marksman',
         'quick_lint_js',
         'yamlls',
+        'vtsls',
+        'eslint',
       }
     })
 
@@ -48,13 +50,19 @@ return {
       ensure_installed = {
         'java-debug-adapter',
         'java-test',
+        'prettier',
       },
     })
 
     -- There is an issue with mason-tools-installer running with VeryLazy, since it triggers on VimEnter which has already occurred prior to this plugin loading so we need to call install explicitly
     -- https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim/issues/39
     vim.api.nvim_command('MasonToolsInstall')
-
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      pattern = { "*.js", "*.jsx", "*.ts", "*.tsx", "*.json" },
+      callback = function()
+        vim.lsp.buf.format({ async = true })
+      end
+    })
     local lspconfig = require('lspconfig')
     local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
     local lsp_attach = function(client, bufnr)
@@ -80,11 +88,37 @@ return {
         Lua = {
           diagnostics = {
             -- Get the language server to recognize the `vim` global
-            globals = {'vim'},
+            globals = { 'vim' },
           },
         },
       },
     }
+
+    -- TypeScript LSP Configuration
+    lspconfig.vtsls.setup({
+      on_attach = lsp_attach,
+      capabilities = lsp_capabilities,
+      root_dir = lspconfig.util.root_pattern("package.json", "tsconfig.json", "jsconfig.json", ".git"),
+      settings = {
+        vtsls = {
+          enableMoveToFileCodeAction = true,
+          completeFunctionCalls = true,
+        }
+      }
+    })
+
+    -- ESLint LSP Configuration
+    lspconfig.eslint.setup({
+      on_attach = function(client, bufnr)
+        -- Auto-fix on save
+        vim.api.nvim_create_autocmd("BufWritePre", {
+          buffer = bufnr,
+          command = "EslintFixAll"
+        })
+      end,
+      capabilities = lsp_capabilities,
+      root_dir = lspconfig.util.root_pattern(".eslintrc.json", ".eslintrc.js", ".git"),
+    })
 
     -- Globally configure all LSP floating preview popups (like hover, signature help, etc)
     local open_floating_preview = vim.lsp.util.open_floating_preview
@@ -93,7 +127,5 @@ return {
       opts.border = opts.border or "rounded" -- Set border to rounded
       return open_floating_preview(contents, syntax, opts, ...)
     end
-
   end
 }
-

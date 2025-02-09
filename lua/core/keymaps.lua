@@ -158,3 +158,10 @@ keymap.set('n', '<leader>rp', ':RunProject<CR>', { noremap = true, silent = fals
 keymap.set('n', '<leader>rc', ':RunClose<CR>', { noremap = true, silent = false })
 keymap.set('n', '<leader>crf', ':CRFiletype<CR>', { noremap = true, silent = false })
 keymap.set('n', '<leader>crp', ':CRProjects<CR>', { noremap = true, silent = false })
+
+-- Jump between JSX tags
+vim.keymap.set('n', '<leader>j', ':TSTextobjectGotoNextStart @tag.outer<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>k', ':TSTextobjectGotoPreviousStart @tag.outer<CR>', { noremap = true, silent = true })
+
+-- Format with Prettier
+vim.keymap.set('n', '<leader>f', ':Prettier<CR>', { noremap = true, silent = true })

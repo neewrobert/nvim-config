@@ -17,6 +17,12 @@ return {
     ensure_installed = {
       'lua',
       'comment',
+      'javascript',
+      'typescript',
+      'tsx',
+      'json',
+      'css',
+      'html'
     },
   },
   config = function (_, opts)

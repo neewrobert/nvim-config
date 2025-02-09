@@ -42,7 +42,7 @@ local config = {
   -- See https://github.com/eclipse/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
   settings = {
     java = {
-      home = '/Users/newton/.sdkman/candidates/java/21.0.3-tem',
+      home = '/Users/newton/.sdkman/candidates/java/23.0.2-graalce',
       eclipse = {
         downloadSources = true,
       },
@@ -51,8 +51,8 @@ local config = {
         -- The runtime name parameters need to match specific Java execution environments.
         runtimes = {
           {
-            name = "JavaSE-8",
-            path = "/Users/newton/.sdkman/candidates/java/8.0.422-zulu",
+            name = "Java-GraalVMCE-23",
+            path = "/Users/newton/.sdkman/candidates/java/23.0.2-graalce",
           },
           {
             name = "JavaSE-17",
