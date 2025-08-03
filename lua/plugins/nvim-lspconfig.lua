@@ -71,7 +71,7 @@ return {
 
     -- Call setup on each LSP server
     require('mason-lspconfig').setup()
-    local servers = { 'tsserver', 'eslint', 'lua_ls', 'yamlls', 'jsonls' }
+    local servers = { 'ts_ls', 'eslint', 'lua_ls', 'yamlls', 'jsonls' }
     for _, server in ipairs(servers) do
       if server ~= 'jdtls' then
         require('lspconfig')[server].setup({
