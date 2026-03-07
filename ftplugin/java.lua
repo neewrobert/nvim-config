@@ -16,7 +16,7 @@ local config = {
   -- The command that starts the language server
   -- See: https://github.com/eclipse/eclipse.jdt.ls#running-from-the-command-line
   cmd = {
-    'java',
+    '/Users/newton/.sdkman/candidates/java/21.0.5-amzn/bin/java',
     '-Declipse.application=org.eclipse.jdt.ls.core.id1',
     '-Dosgi.bundles.defaultStartLevel=4',
     '-Declipse.product=org.eclipse.jdt.ls.core.product',
@@ -27,6 +27,8 @@ local config = {
     '--add-modules=ALL-SYSTEM',
     '--add-opens', 'java.base/java.util=ALL-UNNAMED',
     '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+    '--add-opens', 'java.base/java.nio.file=ALL-UNNAMED',
+    '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED',
 
     -- Eclipse jdtls location
     '-jar', vim.env.HOME .. '/.local/share/nvim/mason/share/jdtls/plugins/org.eclipse.equinox.launcher.jar',
@@ -42,7 +44,7 @@ local config = {
   -- See https://github.com/eclipse/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
   settings = {
     java = {
-      home = '/Users/newton/.sdkman/candidates/java/23.0.2-graalce',
+      home = '/Users/newton/.sdkman/candidates/java/21.0.5-amzn',
       eclipse = {
         downloadSources = true,
       },
@@ -51,12 +53,12 @@ local config = {
         -- The runtime name parameters need to match specific Java execution environments.
         runtimes = {
           {
-            name = "Java-GraalVMCE-23",
-            path = "/Users/newton/.sdkman/candidates/java/23.0.2-graalce",
-          },
-          {
             name = "JavaSE-17",
             path = "/Users/newton/.sdkman/candidates/java/17.0.11-zulu",
+          },
+          {
+            name = "JavaSE-21",
+            path = "/Users/newton/.sdkman/candidates/java/21.0.5-amzn",
           },
         },
       },
@@ -72,11 +74,10 @@ local config = {
       signatureHelp = { enabled = true },
       format = {
         enabled = true,
-        -- Formatting works by default, but you can refer to a specific file/URL if you choose
-        -- settings = {
-        --   url = "https://github.com/google/styleguide/blob/gh-pages/intellij-java-google-style.xml",
-        --   profile = "GoogleStyle",
-        -- },
+        settings = {
+          url = "https://raw.githubusercontent.com/google/styleguide/gh-pages/intellij-java-google-style.xml",
+          profile = "GoogleStyle",
+        },
       },
     },
     completion = {
@@ -99,8 +100,8 @@ local config = {
     extendedClientCapabilities = jdtls.extendedClientCapabilities,
     sources = {
       organizeImports = {
-        starThreshold = 9999,
-        staticStarThreshold = 9999,
+        starThreshold = 1,
+        staticStarThreshold = 1,
       },
     },
     codeGeneration = {

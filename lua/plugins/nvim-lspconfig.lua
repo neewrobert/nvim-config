@@ -63,26 +63,17 @@ return {
         vim.lsp.buf.format({ async = true })
       end
     })
-    local lspconfig = require('lspconfig')
+
     local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
     local lsp_attach = function(client, bufnr)
       -- Create your keybindings here...
     end
 
-    -- Call setup on each LSP server
-    require('mason-lspconfig').setup()
-    local servers = { 'ts_ls', 'eslint', 'lua_ls', 'yamlls', 'jsonls' }
-    for _, server in ipairs(servers) do
-      if server ~= 'jdtls' then
-        require('lspconfig')[server].setup({
-          on_attach = lsp_attach,
-          capabilities = lsp_capabilities,
-        })
-      end
-    end
-    
+    -- Configure LSP servers using the new vim.lsp.config API
     -- Lua LSP settings
-    lspconfig.lua_ls.setup {
+    vim.lsp.config.lua_ls = {
+      capabilities = lsp_capabilities,
+      on_attach = lsp_attach,
       settings = {
         Lua = {
           diagnostics = {
@@ -94,20 +85,21 @@ return {
     }
 
     -- TypeScript LSP Configuration
-    lspconfig.vtsls.setup({
-      on_attach = lsp_attach,
+    vim.lsp.config.vtsls = {
       capabilities = lsp_capabilities,
-      root_dir = lspconfig.util.root_pattern("package.json", "tsconfig.json", "jsconfig.json", ".git"),
+      on_attach = lsp_attach,
+      root_markers = { "package.json", "tsconfig.json", "jsconfig.json", ".git" },
       settings = {
         vtsls = {
           enableMoveToFileCodeAction = true,
           completeFunctionCalls = true,
         }
       }
-    })
+    }
 
     -- ESLint LSP Configuration
-    lspconfig.eslint.setup({
+    vim.lsp.config.eslint = {
+      capabilities = lsp_capabilities,
       on_attach = function(client, bufnr)
         -- Auto-fix on save
         vim.api.nvim_create_autocmd("BufWritePre", {
@@ -115,9 +107,22 @@ return {
           command = "EslintFixAll"
         })
       end,
-      capabilities = lsp_capabilities,
-      root_dir = lspconfig.util.root_pattern(".eslintrc.json", ".eslintrc.js", ".git"),
-    })
+      root_markers = { ".eslintrc.json", ".eslintrc.js", ".git" },
+    }
+
+    -- Configure other LSP servers
+    local servers = { 'ts_ls', 'yamlls', 'jsonls' }
+    for _, server in ipairs(servers) do
+      if server ~= 'jdtls' then
+        vim.lsp.config[server] = {
+          capabilities = lsp_capabilities,
+          on_attach = lsp_attach,
+        }
+      end
+    end
+
+    -- Enable LSP servers
+    vim.lsp.enable({ 'lua_ls', 'vtsls', 'eslint', 'ts_ls', 'yamlls', 'jsonls' })
 
     -- Globally configure all LSP floating preview popups (like hover, signature help, etc)
     local open_floating_preview = vim.lsp.util.open_floating_preview

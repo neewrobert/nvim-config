@@ -93,7 +93,7 @@ return {
     require('dapui').setup(opts)
 
     dap.listeners.after.event_initialized["dapui_config"] = function()
-      require('dapui').open()
+       require('dapui').open()
     end
 
     dap.listeners.before.event_terminated["dapui_config"] = function()
