@@ -3,6 +3,27 @@ local jdtls = require('jdtls')
 local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
 local workspace_dir = vim.env.HOME .. '/jdtls-workspace/' .. project_name
 
+-- Resolve an installed SDKMAN java home for a given major version, so this
+-- file doesn't need machine-specific hardcoded patch/vendor versions.
+local function sdkman_java_home(major)
+  local candidates = vim.fn.glob(vim.env.HOME .. '/.sdkman/candidates/java/' .. major .. '.*', true, true)
+  if #candidates == 0 then
+    error('No SDKMAN java ' .. major .. '.x found; install one with `sdk install java ' .. major .. '.x-tem`')
+  end
+  table.sort(candidates)
+  return candidates[#candidates]
+end
+
+local java21_home = sdkman_java_home(21)
+local java17_home = sdkman_java_home(17)
+
+-- jdtls ships OS/arch-specific launch configs; pick the right one for this machine.
+local uname = vim.uv.os_uname()
+local jdtls_config_dir = ({
+  Darwin = { aarch64 = 'config_mac_arm', arm64 = 'config_mac_arm', x86_64 = 'config_mac' },
+  Linux = { aarch64 = 'config_linux_arm', arm64 = 'config_linux_arm', x86_64 = 'config_linux' },
+})[uname.sysname][uname.machine]
+
 -- Needed for debugging
 local bundles = {
   vim.fn.glob(vim.env.HOME .. '/.local/share/nvim/mason/share/java-debug-adapter/com.microsoft.java.debug.plugin.jar'),
@@ -16,7 +37,7 @@ local config = {
   -- The command that starts the language server
   -- See: https://github.com/eclipse/eclipse.jdt.ls#running-from-the-command-line
   cmd = {
-    '/Users/newton/.sdkman/candidates/java/21.0.5-amzn/bin/java',
+    java21_home .. '/bin/java',
     '-Declipse.application=org.eclipse.jdt.ls.core.id1',
     '-Dosgi.bundles.defaultStartLevel=4',
     '-Declipse.product=org.eclipse.jdt.ls.core.product',
@@ -32,7 +53,7 @@ local config = {
 
     -- Eclipse jdtls location
     '-jar', vim.env.HOME .. '/.local/share/nvim/mason/share/jdtls/plugins/org.eclipse.equinox.launcher.jar',
-    '-configuration', vim.env.HOME .. '/.local/share/nvim/mason/packages/jdtls/config_mac_arm',
+    '-configuration', vim.env.HOME .. '/.local/share/nvim/mason/packages/jdtls/' .. jdtls_config_dir,
     '-data', workspace_dir
   },
 
@@ -44,7 +65,7 @@ local config = {
   -- See https://github.com/eclipse/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
   settings = {
     java = {
-      home = '/Users/newton/.sdkman/candidates/java/21.0.5-amzn',
+      home = java21_home,
       eclipse = {
         downloadSources = true,
       },
@@ -54,11 +75,11 @@ local config = {
         runtimes = {
           {
             name = "JavaSE-17",
-            path = "/Users/newton/.sdkman/candidates/java/17.0.11-zulu",
+            path = java17_home,
           },
           {
             name = "JavaSE-21",
-            path = "/Users/newton/.sdkman/candidates/java/21.0.5-amzn",
+            path = java21_home,
           },
         },
       },
