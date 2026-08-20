@@ -1,5 +1,11 @@
--- Floating, movable keymap reference panel.
--- Toggle: <leader>?
+-- Floating, movable keymap reference panel, meant to stay open in the
+-- background for reference while you code.
+--
+-- <leader>?  from your code: opens the panel (or jumps focus into it if
+--            it's already open in the background). From inside the
+--            panel: jumps focus back to the code window you came from,
+--            WITHOUT closing the panel.
+--
 -- While the panel is focused:
 --   Tab / S-Tab   cycle tabs
 --   j / k         scroll within a tab
@@ -9,7 +15,7 @@
 --   m             minimize / restore
 --   M             maximize / restore
 --   c             cycle corner-docked "small square" presets
---   q / Esc       close
+--   q / Esc       fully close the panel (back to <leader>? to reopen)
 --   drag the top (title) row with the mouse to move
 
 local tabs = require("core.keymap_data")
@@ -25,14 +31,17 @@ local state = {
   scroll = 0,
   row = 2,
   col = 2,
-  width = 60,
-  height = 18,
+  width = 72,
+  height = 20,
   mode = "normal", -- normal | minimized | maximized | docked
   saved = nil, -- {row, col, width, height, mode} to restore from minimize/maximize/dock
   corner_idx = 1,
   prev_mouse_opt = nil,
   drag = nil,
+  prev_win = nil, -- window to return focus to when jumping back to code
 }
+
+local FOOTER = "q close   <leader>? back to code   Tab/S-Tab tabs   H/J/K/L move   m/M/c size"
 
 local CORNERS = { "top-left", "top-right", "bottom-left", "bottom-right" }
 local DOCK_SIZE = { width = 22, height = 8 }
@@ -83,27 +92,48 @@ local function win_config()
   }
 end
 
+-- Packs all tab labels into as many lines as needed to fit max_w, so every
+-- tab stays visible instead of being cut off on one unwrapped line.
+local function build_tabline_lines(labels, max_w)
+  local tabline_lines = {}
+  local cur = ""
+  for _, label in ipairs(labels) do
+    local candidate = (cur == "") and label or (cur .. " " .. label)
+    if #candidate > max_w and cur ~= "" then
+      table.insert(tabline_lines, cur)
+      cur = label
+    else
+      cur = candidate
+    end
+  end
+  if cur ~= "" then table.insert(tabline_lines, cur) end
+  return tabline_lines
+end
+
 local function render()
   if not (state.buf and vim.api.nvim_buf_is_valid(state.buf)) then return end
 
   vim.api.nvim_buf_set_option(state.buf, "modifiable", true)
   vim.api.nvim_buf_clear_namespace(state.buf, NS, 0, -1)
 
-  local lines = {}
-  local tabline_parts = {}
-  for i, tab in ipairs(tabs) do
-    table.insert(tabline_parts, string.format("[%d]%s", i, tab.title))
-  end
-  local tabline = table.concat(tabline_parts, " ")
-  table.insert(lines, tabline)
-
   if state.mode == "minimized" then
-    lines = { string.format("Keymaps (%d/%d) - press m to restore", state.current_tab, #tabs) }
+    local lines = { string.format("Keymaps (%d/%d) - press m to restore", state.current_tab, #tabs) }
     vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
     vim.api.nvim_buf_set_option(state.buf, "modifiable", false)
     return
   end
 
+  local labels = {}
+  for i, tab in ipairs(tabs) do
+    labels[i] = string.format("[%d]%s", i, tab.title)
+  end
+  local max_w = math.max(10, state.width - 2)
+  local tabline_lines = build_tabline_lines(labels, max_w)
+
+  local lines = {}
+  for _, l in ipairs(tabline_lines) do
+    table.insert(lines, l)
+  end
   table.insert(lines, "")
 
   local tab = tabs[state.current_tab]
@@ -117,7 +147,9 @@ local function render()
     table.insert(body, string.format("%-" .. key_width .. "s  %s", entry.key, entry.action))
   end
 
-  local visible_rows = math.max(1, state.height - 2)
+  -- reserved: tabline rows + blank separator + footer line
+  local reserved = #tabline_lines + 1 + 1
+  local visible_rows = math.max(1, state.height - reserved)
   local max_scroll = math.max(0, #body - visible_rows)
   state.scroll = clamp(state.scroll, 0, max_scroll)
 
@@ -125,16 +157,17 @@ local function render()
     table.insert(lines, body[i])
   end
 
+  table.insert(lines, FOOTER)
+
   vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
 
-  -- Highlight the active tab label on the tabline.
-  local start_col = 0
-  for i, part in ipairs(tabline_parts) do
-    if i == state.current_tab then
-      vim.api.nvim_buf_add_highlight(state.buf, NS, "PmenuSel", 0, start_col, start_col + #part)
+  -- Highlight the active tab label, wherever it landed in the wrapped tabline.
+  for row_idx, row_text in ipairs(tabline_lines) do
+    local s, e = string.find(row_text, labels[state.current_tab], 1, true)
+    if s then
+      vim.api.nvim_buf_add_highlight(state.buf, NS, "PmenuSel", row_idx - 1, s - 1, e)
       break
     end
-    start_col = start_col + #part + 1
   end
 
   vim.api.nvim_buf_set_option(state.buf, "modifiable", false)
@@ -246,6 +279,7 @@ local function end_drag()
 end
 
 function M.close()
+  local return_to = state.prev_win
   if state.win and vim.api.nvim_win_is_valid(state.win) then
     vim.api.nvim_win_close(state.win, true)
   end
@@ -254,6 +288,9 @@ function M.close()
     state.prev_mouse_opt = nil
   end
   state.win = nil
+  if return_to and vim.api.nvim_win_is_valid(return_to) then
+    vim.api.nvim_set_current_win(return_to)
+  end
 end
 
 local function setup_keymaps(buf)
@@ -314,8 +351,20 @@ end
 
 function M.toggle()
   if state.win and vim.api.nvim_win_is_valid(state.win) then
-    M.close()
+    local cur_win = vim.api.nvim_get_current_win()
+    if cur_win == state.win then
+      -- Already in the panel: jump back to the code we came from, leaving
+      -- the panel open in the background.
+      if state.prev_win and vim.api.nvim_win_is_valid(state.prev_win) then
+        vim.api.nvim_set_current_win(state.prev_win)
+      end
+    else
+      -- Panel is open in the background: jump into it.
+      state.prev_win = cur_win
+      vim.api.nvim_set_current_win(state.win)
+    end
   else
+    state.prev_win = vim.api.nvim_get_current_win()
     open()
   end
 end
