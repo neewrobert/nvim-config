@@ -328,6 +328,11 @@ local function setup_keymaps(buf)
   vim.keymap.set("n", "m", toggle_minimize, opts)
   vim.keymap.set("n", "M", toggle_maximize, opts)
   vim.keymap.set("n", "c", cycle_dock, opts)
+  -- The panel is read-only; silence common insert-mode entry keys instead
+  -- of letting them hit "E21: Cannot make changes".
+  for _, key in ipairs({ "i", "I", "a", "A", "o", "O", "s", "S", "R", "gi", "gI" }) do
+    vim.keymap.set("n", key, "<Nop>", opts)
+  end
   vim.keymap.set("n", "<LeftMouse>", start_drag, opts)
   vim.keymap.set("n", "<LeftDrag>", do_drag, opts)
   vim.keymap.set("n", "<LeftRelease>", end_drag, opts)
