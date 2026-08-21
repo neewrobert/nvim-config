@@ -8,6 +8,7 @@
 --
 -- While the panel is focused:
 --   Tab / S-Tab   cycle tabs
+--   1-9, 0        jump directly to tab 1-9, or tab 10
 --   j / k         scroll within a tab
 --   H J K L       move the window
 --   + / -         resize height
@@ -41,7 +42,7 @@ local state = {
   prev_win = nil, -- window to return focus to when jumping back to code
 }
 
-local FOOTER = "q close   <leader>? back to code   Tab/S-Tab tabs   H/J/K/L move   m/M/c size"
+local FOOTER = "q close   <leader>? back to code   1-9/0 or Tab tabs   H/J/K/L move   m/M/c size"
 
 local CORNERS = { "top-left", "top-right", "bottom-left", "bottom-right" }
 local DOCK_SIZE = { width = 22, height = 8 }
@@ -200,6 +201,13 @@ local function next_tab(delta)
   render()
 end
 
+local function go_to_tab(n)
+  if n < 1 or n > #tabs then return end
+  state.current_tab = n
+  state.scroll = 0
+  render()
+end
+
 local function scroll(delta)
   state.scroll = state.scroll + delta
   render()
@@ -299,6 +307,10 @@ local function setup_keymaps(buf)
   vim.keymap.set("n", "<Esc>", M.close, opts)
   vim.keymap.set("n", "<Tab>", function() next_tab(1) end, opts)
   vim.keymap.set("n", "<S-Tab>", function() next_tab(-1) end, opts)
+  for n = 1, 9 do
+    vim.keymap.set("n", tostring(n), function() go_to_tab(n) end, opts)
+  end
+  vim.keymap.set("n", "0", function() go_to_tab(10) end, opts)
   vim.keymap.set("n", "j", function() scroll(1) end, opts)
   vim.keymap.set("n", "k", function() scroll(-1) end, opts)
   vim.keymap.set("n", "H", function() move(0, -2) end, opts)
