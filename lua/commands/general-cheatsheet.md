@@ -172,7 +172,7 @@
   *Executes a REST query using Vim REST Console.*
 
 ## LSP
-- **Hover**: `<leader>gg` → `:lua vim.lsp.buf.hover()`  
+- **Hover**: `K` → `:lua vim.lsp.buf.hover()`  
   *Displays hover information about the symbol under the cursor.*
 
 - **Go to Definition**: `<leader>gd` → `:lua vim.lsp.buf.definition()`  
@@ -181,7 +181,7 @@
 - **Go to Declaration**: `<leader>gD` → `:lua vim.lsp.buf.declaration()`  
   *Jumps to the declaration of the symbol under the cursor.*
 
-- **Go to Implementation**: `<leader>gi` → `:lua vim.lsp.buf.implementation()`  
+- **Go to Implementation**: `<leader>gI` → `:lua vim.lsp.buf.implementation()`  
   *Jumps to the implementation of the symbol under the cursor.*
 
 - **Type Definition**: `<leader>gt` → `:lua vim.lsp.buf.type_definition()`  

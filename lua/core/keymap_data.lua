@@ -83,10 +83,10 @@ return {
     entries = {
       { key = "SPACE gd", action = "Go to definition" },
       { key = "SPACE gD", action = "Go to declaration" },
-      { key = "SPACE gi", action = "Go to implementation" },
+      { key = "SPACE gI", action = "Go to implementation" },
       { key = "SPACE gt", action = "Go to type definition" },
       { key = "SPACE gr", action = "Find all references" },
-      { key = "SPACE gg", action = "Hover info (show docs)" },
+      { key = "K", action = "Hover info (show docs)" },
       { key = "Ctrl+o", action = "Jump back (after go-to-definition)" },
       { key = "Ctrl+i", action = "Jump forward" },
     },

@@ -79,10 +79,10 @@ Leader key: **SPACE**
 |-----|--------|
 | `SPACE gd` | Go to definition |
 | `SPACE gD` | Go to declaration |
-| `SPACE gi` | Go to implementation |
+| `SPACE gI` | Go to implementation |
 | `SPACE gt` | Go to type definition |
 | `SPACE gr` | Find all references |
-| `SPACE gg` | Hover info (show docs) |
+| `K` | Hover info (show docs) |
 | `Ctrl+o` | Jump back (after go-to-definition) |
 | `Ctrl+i` | Jump forward |
 
